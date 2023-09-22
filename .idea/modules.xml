@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../filtros_e_manipulacao_de_video/.idea/filtros_e_manipulacao_de_video.iml" filepath="$PROJECT_DIR$/../filtros_e_manipulacao_de_video/.idea/filtros_e_manipulacao_de_video.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/gui_for_opencv.iml" filepath="$PROJECT_DIR$/.idea/gui_for_opencv.iml" />
     </modules>
   </component>
