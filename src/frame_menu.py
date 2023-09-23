@@ -15,8 +15,12 @@ class ManipulacaoImagemApp:
         self.imagem_cv2 = None
         self.label_imagem_alterada = None
         self.label_imagem_original = None
-        self.median_ksize = 1
         self.imagem_alterada = None
+        self.conversion_effect_applied = False
+        self.filter_effect_applied = False
+        self.border_effect_applied = False
+        self.threshold_effect_applied = False
+        self.morphology_effect_applied = False
 
         master.title("Manipulação de Imagem")
         master.geometry("800x600")
@@ -44,7 +48,7 @@ class ManipulacaoImagemApp:
 
         # ListView para Filtros
         self.list_view_effects.insert("", "end", text="Filtro Median Blur", tags=("blur_median_filter", ))
-        self.list_view_effects.insert("", "end", text="FIltro Gaussian Blur", tags=("blur_gaussian_filter", ))
+        self.list_view_effects.insert("", "end", text="Filtro Gaussian Blur", tags=("blur_gaussian_filter", ))
 
         # Atribuição de funções para as opções do ListView filtros.
         self.list_view_effects.tag_bind("blur_median_filter", "<ButtonRelease-1>", lambda event: self.blur_median_filter())
@@ -85,112 +89,186 @@ class ManipulacaoImagemApp:
         self.botao_carregar_imagem.pack(pady=20)
 
     def morph_dilatation(self):
-        if self.caminho_da_imagem:
+        if not self.morphology_effect_applied and self.caminho_da_imagem:
             morphology = Morphology(self.imagem_alterada, "Dilatacao", "dilatation")
             dilatation_image = morphology.run_morphology()
             if dilatation_image is not None:
+                effect_name = "Dilatação"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.morphology_effect_applied = True
                 self.show_image_effect(dilatation_image)
+        elif self.morphology_effect_applied:
+            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def morph_erosion(self):
-        if self.caminho_da_imagem:
+        if not self.morphology_effect_applied and self.caminho_da_imagem:
             morphology = Morphology(self.imagem_alterada, "Erosao", "erosion")
             erosion_image = morphology.run_morphology()
             if erosion_image is not None:
+                effect_name = "Erosão"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.morphology_effect_applied = True
                 self.show_image_effect(erosion_image)
+        elif self.morphology_effect_applied:
+            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def threshold_rgb(self):
-        if self.caminho_da_imagem:
+        if not self.threshold_effect_applied and self.caminho_da_imagem:
             threshold_rgb = Threshold(self.imagem_alterada, "Threshold RGB", "binarize")
             binarized_image = threshold_rgb.run_threshold()
             if binarized_image is not None:
+                effect_name = "Threshold"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.threshold_effect_applied = True
                 self.show_image_effect(binarized_image)
+        elif self.threshold_effect_applied:
+            messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def canny_border_detector(self):
-        if self.caminho_da_imagem:
+        if not self.border_effect_applied and self.caminho_da_imagem:
             canny_border = Border(self.imagem_alterada, "Canny Border", "canny")
             image_canny = canny_border.run_filter()
             if image_canny is not None:
+                effect_name = "Detector de borda Canny"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.border_effect_applied = True
                 self.show_image_effect(image_canny)
+        elif self.border_effect_applied:
+            messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def blur_gaussian_filter(self):
-        if self.caminho_da_imagem:
+        if not self.filter_effect_applied and self.caminho_da_imagem:
             gaussian_filter = Filter(self.imagem_alterada, "Filter Gaussian", "gaussian")
             imagem_gaussian = gaussian_filter.run_filter()
             if imagem_gaussian is not None:
+                effect_name = "Filtro Gaussian Blur"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.filter_effect_applied = True
                 self.show_image_effect(imagem_gaussian)
+        elif self.filter_effect_applied:
+            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def blur_median_filter(self):
-        if self.caminho_da_imagem:
+        if not self.filter_effect_applied and self.caminho_da_imagem:
             median_filter = Filter(self.imagem_alterada, "Filter Median", "median")
             imagem_median = median_filter.run_filter()
             if imagem_median is not None:
+                effect_name = "Filtro Median Blur"
+                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.filter_effect_applied = True
                 self.show_image_effect(imagem_median)
+        elif self.filter_effect_applied:
+            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_cieluv(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_cieluv = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2LUV)
+            effect_name = "RGB --> CIE L*u*v*"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_cieluv)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_cielab(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_cielab = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2LAB)
+            effect_name = "RGB --> CIE L*a*b*"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_cielab)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_hls(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_hls = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2HLS)
+            effect_name = "RGB --> HLS"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_hls)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_hsv(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_hsv = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2HSV)
+            effect_name = "RGB --> HSV"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_hsv)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_ycrcb(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_ycrcb = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2YCrCb)
+            effect_name = "RGB --> YCrCb"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_ycrcb)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_xyz(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_xyz = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2XYZ)
+            effect_name = "RGB --> XYZ"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_xyz)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
     def cvt_rgb_2_gray(self):
-        if self.caminho_da_imagem:
+        if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_gray = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_BGR2GRAY)
+            effect_name = "RGB --> GRAY"
+            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.conversion_effect_applied = True
             self.show_image_effect(imagem_gray)
+        elif self.conversion_effect_applied:
+            messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+
+    def add_effect_to_list_view_applieds_effects(self, effect_name):
+        self.list_view_efeitos_aplicados.insert("", "end", text=effect_name)
+
+    def limpar_efeitos_aplicados(self):
+        # Limpa todos os itens no self.list_view_efeitos_aplicados
+        for item in self.list_view_efeitos_aplicados.get_children():
+            self.list_view_efeitos_aplicados.delete(item)
 
     def load_image(self):
         self.imagem_cv2 = cv2.imread(self.caminho_da_imagem)
         imagem_cv2 = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_BGR2RGB)
 
+        self.limpar_efeitos_aplicados()
         self.show_original_image(imagem_cv2)
         self.show_image_effect(imagem_cv2)
 
