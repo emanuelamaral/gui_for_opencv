@@ -12,21 +12,32 @@ class ManipulacaoImagemApp:
     def __init__(self, master):
         self.master = master
         self.caminho_da_imagem = None
+
         self.imagem_cv2 = None
         self.label_imagem_alterada = None
         self.label_imagem_original = None
         self.imagem_alterada = None
+
         self.conversion_effect_applied = False
         self.filter_effect_applied = False
         self.border_effect_applied = False
         self.threshold_effect_applied = False
         self.morphology_effect_applied = False
+        self.conversion_effect = None
+        self.filter_effect = None
+        self.border_effect = None
+        self.morph_effect = None
+        self.threshold_effect = None
+
+        self.resulted_image = None
+        self.applied_effects = []
 
         master.title("Manipulação de Imagem")
         master.geometry("800x600")
 
         # Criar ListView à esquerda usando um Treeview
         self.list_view_effects = ttk.Treeview(master)
+        self.list_view_effects.column("#0", width=250, minwidth=210)
 
         # ListView Para conversões de cores
         self.list_view_effects.insert("", "end", text="Converter de RGB --> GRAY", tags=("cvt_rgb_2_gray",))
@@ -84,9 +95,15 @@ class ManipulacaoImagemApp:
         self.frame_imagem = tk.Frame(master)
         self.frame_imagem.pack(expand=True, fill="both")
 
-        # Botão para carregar a imagem
-        self.botao_carregar_imagem = tk.Button(self.frame_imagem, text="Carregar Imagem", command=self.abrir_arquivo)
-        self.botao_carregar_imagem.pack(pady=20)
+        # Criar um frame para os botões
+        self.frame_buttons = tk.Frame(master)
+        self.frame_buttons.pack(side="top", pady=10)
+
+        self.botao_carregar_imagem = tk.Button(self.frame_buttons, text="Carregar Imagem", command=self.abrir_arquivo)
+        self.botao_carregar_imagem.pack(side="left", padx=10)
+
+        self.botao_apagar_efeito = tk.Button(self.frame_buttons, text="Apagar", command=self.selecionar_filtro_para_remover)
+        self.botao_apagar_efeito.pack(side="left", padx=10)
 
     def morph_dilatation(self):
         if not self.morphology_effect_applied and self.caminho_da_imagem:
@@ -94,9 +111,10 @@ class ManipulacaoImagemApp:
             dilatation_image = morphology.run_morphology()
             if dilatation_image is not None:
                 effect_name = "Dilatação"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "morph")
                 self.morphology_effect_applied = True
                 self.show_image_effect(dilatation_image)
+                self.applied_effects.append(("morph", morphology))
         elif self.morphology_effect_applied:
             messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
@@ -108,9 +126,10 @@ class ManipulacaoImagemApp:
             erosion_image = morphology.run_morphology()
             if erosion_image is not None:
                 effect_name = "Erosão"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "morph")
                 self.morphology_effect_applied = True
                 self.show_image_effect(erosion_image)
+                self.applied_effects.append(("morph", morphology))
         elif self.morphology_effect_applied:
             messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
@@ -122,9 +141,10 @@ class ManipulacaoImagemApp:
             binarized_image = threshold_rgb.run_threshold()
             if binarized_image is not None:
                 effect_name = "Threshold"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "threshold")
                 self.threshold_effect_applied = True
                 self.show_image_effect(binarized_image)
+                self.applied_effects.append(("threshold", threshold_rgb))
         elif self.threshold_effect_applied:
             messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
@@ -136,9 +156,10 @@ class ManipulacaoImagemApp:
             image_canny = canny_border.run_filter()
             if image_canny is not None:
                 effect_name = "Detector de borda Canny"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "border")
                 self.border_effect_applied = True
                 self.show_image_effect(image_canny)
+                self.applied_effects.append(("borda", canny_border))
         elif self.border_effect_applied:
             messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
         else:
@@ -150,9 +171,10 @@ class ManipulacaoImagemApp:
             imagem_gaussian = gaussian_filter.run_filter()
             if imagem_gaussian is not None:
                 effect_name = "Filtro Gaussian Blur"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "filter")
                 self.filter_effect_applied = True
                 self.show_image_effect(imagem_gaussian)
+                self.applied_effects.append(("filtro", gaussian_filter))
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
@@ -164,9 +186,10 @@ class ManipulacaoImagemApp:
             imagem_median = median_filter.run_filter()
             if imagem_median is not None:
                 effect_name = "Filtro Median Blur"
-                self.add_effect_to_list_view_applieds_effects(effect_name)
+                self.add_effect_to_list_view_applied_effects(effect_name, "filter")
                 self.filter_effect_applied = True
                 self.show_image_effect(imagem_median)
+                self.applied_effects.append(("filtro", median_filter))
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
@@ -176,9 +199,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_cieluv = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2LUV)
             effect_name = "RGB --> CIE L*u*v*"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_cieluv.copy()
             self.show_image_effect(imagem_cieluv)
+            self.applied_effects.append(("conversion", imagem_cieluv))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -188,9 +213,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_cielab = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2LAB)
             effect_name = "RGB --> CIE L*a*b*"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_cielab.copy()
             self.show_image_effect(imagem_cielab)
+            self.applied_effects.append(("conversion", imagem_cielab))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -200,9 +227,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_hls = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2HLS)
             effect_name = "RGB --> HLS"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_hls.copy()
             self.show_image_effect(imagem_hls)
+            self.applied_effects.append(("conversion", imagem_hls))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -212,9 +241,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_hsv = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2HSV)
             effect_name = "RGB --> HSV"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_hsv.copy()
             self.show_image_effect(imagem_hsv)
+            self.applied_effects.append(("conversion", imagem_hsv))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -224,9 +255,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_ycrcb = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2YCrCb)
             effect_name = "RGB --> YCrCb"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_ycrcb.copy()
             self.show_image_effect(imagem_ycrcb)
+            self.applied_effects.append(("conversion", imagem_ycrcb))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -236,9 +269,11 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_xyz = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_RGB2XYZ)
             effect_name = "RGB --> XYZ"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_xyz.copy()
             self.show_image_effect(imagem_xyz)
+            self.applied_effects.append(("conversion", imagem_xyz))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
@@ -248,37 +283,106 @@ class ManipulacaoImagemApp:
         if not self.conversion_effect_applied and self.caminho_da_imagem:
             imagem_gray = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_BGR2GRAY)
             effect_name = "RGB --> GRAY"
-            self.add_effect_to_list_view_applieds_effects(effect_name)
+            self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
+            self.conversion_effect = imagem_gray.copy()
             self.show_image_effect(imagem_gray)
+            self.applied_effects.append(("conversion", imagem_gray))
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
-    def add_effect_to_list_view_applieds_effects(self, effect_name):
-        self.list_view_efeitos_aplicados.insert("", "end", text=effect_name)
+    def add_effect_to_list_view_applied_effects(self, effect_name, tag):
+
+        if tag == "conversion":
+            self.list_view_efeitos_aplicados.insert("", "end", text=effect_name, tags=("conversion", ))
+        elif tag == "morph":
+            self.list_view_efeitos_aplicados.insert("", "end", text=effect_name, tags=("morph",))
+        elif tag == "filter":
+            self.list_view_efeitos_aplicados.insert("", "end", text=effect_name, tags=("filter",))
+        elif tag == "border":
+            self.list_view_efeitos_aplicados.insert("", "end", text=effect_name, tags=("border",))
+        elif tag == "threshold":
+            self.list_view_efeitos_aplicados.insert("", "end", text=effect_name, tags=("threshold",))
 
     def limpar_efeitos_aplicados(self):
         # Limpa todos os itens no self.list_view_efeitos_aplicados
         for item in self.list_view_efeitos_aplicados.get_children():
             self.list_view_efeitos_aplicados.delete(item)
+        self.morphology_effect_applied = False
+        self.threshold_effect_applied = False
+        self.border_effect_applied = False
+        self.conversion_effect_applied = False
+        self.filter_effect_applied = False
+
+    def remover_filtro(self, tag_item):
+        # Remove o filtro específico da lista de efeitos aplicados
+        self.applied_effects = [op for op in self.applied_effects if op[0] != tag_item]
+
+        # Reconstrói a imagem sem o filtro específico
+        imagem_sem_filtro = self.imagem_cv2.copy()
+
+        # Aplica os filtros restantes na ordem correta
+        for effect_type, effect in self.applied_effects:
+            if effect_type == "conversion":
+                imagem_sem_filtro = effect.copy()
+                self.conversion_effect_applied = False
+            elif effect_type == "morph":
+                imagem_sem_filtro = effect.run_morphology(imagem_sem_filtro)
+                self.morphology_effect_applied = False
+            elif effect_type == "filter":
+                imagem_sem_filtro = effect.run_filter(imagem_sem_filtro)
+                self.filter_effect_applied = False
+            elif effect_type == "border":
+                imagem_sem_filtro = effect.run_filter(imagem_sem_filtro)
+                self.border_effect_applied = False
+            elif effect_type == "threshold":
+                imagem_sem_filtro = effect.run_threshold(imagem_sem_filtro)
+                self.threshold_effect_applied = False
+
+        # Atualiza a imagem alterada
+        if self.label_imagem_alterada:
+            self.label_imagem_alterada.destroy()
+            self.resize_altered_image(imagem_sem_filtro)
+
+        # Remove o efeito do self.list_view_efeitos_aplicados
+        for item in self.list_view_efeitos_aplicados.get_children():
+            item_tags = self.list_view_efeitos_aplicados.item(item)["tags"]
+            if tag_item in item_tags:
+                self.list_view_efeitos_aplicados.delete(item)
+
+    def selecionar_filtro_para_remover(self):
+        selected_item = self.list_view_efeitos_aplicados.selection()
+        if selected_item:
+            effect_text = self.list_view_efeitos_aplicados.item(selected_item)
+            tag_item = str(effect_text.__getitem__("tags")[0])
+
+            self.remover_filtro(tag_item)
+        else:
+            messagebox.showinfo("Aviso", "Selecione um efeito para apagar.")
 
     def load_image(self):
         self.imagem_cv2 = cv2.imread(self.caminho_da_imagem)
-        imagem_cv2 = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_BGR2RGB)
+        self.imagem_cv2 = cv2.cvtColor(self.imagem_cv2, cv2.COLOR_BGR2RGB)
 
         self.limpar_efeitos_aplicados()
-        self.show_original_image(imagem_cv2)
-        self.show_image_effect(imagem_cv2)
+        self.show_original_image(self.imagem_cv2)
+        self.resulted_image = None
+        self.show_image_effect(self.imagem_cv2)
 
     def show_image_effect(self, img):
 
         if self.label_imagem_alterada:
             self.label_imagem_alterada.destroy()
 
+        self.resize_altered_image(img)
+
+    # Redimensiona a imagem resultante
+    def resize_altered_image(self, img):
         largura_imagem = 600
         altura_imagem = 350
+
         imagem_redimensionada = cv2.resize(img, (largura_imagem, altura_imagem))
 
         self.imagem_alterada = imagem_redimensionada
@@ -291,6 +395,7 @@ class ManipulacaoImagemApp:
         self.label_imagem_alterada.pack(expand=True, fill="both")
 
         self.frame_imagem.update_idletasks()
+
 
     def show_original_image(self, img):
 
