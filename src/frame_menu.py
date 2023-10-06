@@ -7,6 +7,7 @@ from src.effects.border import Border
 from src.effects.threshold import Threshold
 from src.effects.morphology import Morphology
 from src.effects.conversion import Conversion
+import os
 
 
 class AppImageManipulation:
@@ -43,6 +44,9 @@ class AppImageManipulation:
         self.frame_buttons = None
         self.load_image_button = None
         self.remove_effect_button = None
+        self.save_image_button = None
+
+        self.count_save_files = 0
         # ###########################################################
 
         self.config_frame()
@@ -60,12 +64,15 @@ class AppImageManipulation:
         self.frame_buttons = tk.Frame(self.master)
         self.frame_buttons.pack(side="top", pady=10)
 
-        self.load_image_button = tk.Button(self.frame_buttons, text="Carregar Imagem", command=self.abrir_arquivo)
+        self.load_image_button = tk.Button(self.frame_buttons, text="Carregar Imagem", command=self.open_file)
         self.load_image_button.pack(side="left", padx=10)
 
         self.remove_effect_button = tk.Button(self.frame_buttons, text="Apagar",
-                                              command=self.selecionar_filtro_para_remover)
+                                              command=self.select_filter_to_remove)
         self.remove_effect_button.pack(side="left", padx=10)
+
+        self.save_image_button = tk.Button(self.frame_buttons, text="Salvar Imagem", command=self.save_image)
+        self.save_image_button.pack(side="left", padx=10)
 
     def list_views_config(self):
         self.list_view_effects = ttk.Treeview(self.master)
@@ -119,7 +126,7 @@ class AppImageManipulation:
 
         self.list_view_effects.pack(side="left", fill="y")
 
-        # Cria um ListView abaixo para mostrar os filtros aplicados
+        # Cria um ListView na parte de baixo do frame para mostrar os filtros aplicados
         self.list_view_applied_effects = ttk.Treeview(self.master)
         self.list_view_applied_effects.pack(side="bottom", fill="x")
 
@@ -330,8 +337,8 @@ class AppImageManipulation:
         elif tag == "threshold":
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("threshold",))
 
-    def limpar_efeitos_aplicados(self):
-        # Limpa todos os itens no self.list_view_efeitos_aplicados
+    def clear_applied_effects(self):
+        # Limpa todos os itens no Bottom List View
         for item in self.list_view_applied_effects.get_children():
             self.list_view_applied_effects.delete(item)
         self.morphology_effect_applied = False
@@ -352,7 +359,7 @@ class AppImageManipulation:
             if effect_type == "conversion":
                 imagem_sem_filtro = effect.copy()
             elif effect_type == "morph":
-                imagem_sem_filtro = self.morph_effect.morph_erosion()
+                imagem_sem_filtro = effect.run_morphology(imagem_sem_filtro)
             elif effect_type == "filter":
                 imagem_sem_filtro = effect.run_filter(imagem_sem_filtro)
             elif effect_type == "border":
@@ -360,12 +367,12 @@ class AppImageManipulation:
             elif effect_type == "threshold":
                 imagem_sem_filtro = effect.run_threshold(imagem_sem_filtro)
 
-        # Atualiza a imagem alterada
+        # Atualiza a imagem alterada no frame
         if self.label_altered_image:
             self.label_altered_image.destroy()
             self.resize_altered_image(imagem_sem_filtro)
 
-        # Remove o efeito do self.list_view_efeitos_aplicados
+        # Remove os efeitos aplicados do Bottom List View
         for item in self.list_view_applied_effects.get_children():
             item_tags = self.list_view_applied_effects.item(item)["tags"]
             if tag_item in item_tags:
@@ -381,7 +388,7 @@ class AppImageManipulation:
             elif tag_item == "threshold":
                 self.threshold_effect_applied = False
 
-    def selecionar_filtro_para_remover(self):
+    def select_filter_to_remove(self):
         selected_item = self.list_view_applied_effects.selection()
         if selected_item:
             effect_text = self.list_view_applied_effects.item(selected_item)
@@ -391,14 +398,29 @@ class AppImageManipulation:
         else:
             messagebox.showinfo("Aviso", "Selecione um efeito para apagar.")
 
+    def save_image(self):
+        directory = "images/saved-images"
+        while True:
+            filename = f'imagem_{self.count_save_files}.jpg'
+            file_path = os.path.join(directory, filename)
+
+            # Incrementa se ja existir algum arquivo com o numero atual
+            if os.path.exists(file_path):
+                self.count_save_files += 1
+            else:
+                cv2.imwrite(file_path, self.altered_image)
+                print(f'Imagem salva como {filename}')
+                break
+
     def load_image(self):
         self.original_image = cv2.imread(self.image_path)
-        self.original_image = cv2.cvtColor(self.original_image, cv2.COLOR_BGR2RGB)
+        self.original_image = cv2.cvtColor(self.original_image.copy(), cv2.COLOR_BGR2RGB)
+        self.altered_image = self.original_image.copy()
 
-        self.limpar_efeitos_aplicados()
-        self.show_original_image(self.original_image)
+        self.clear_applied_effects()
+        self.show_original_image(self.original_image.copy())
         self.resulted_image = None
-        self.show_image_effect(self.original_image)
+        self.show_image_effect(self.altered_image.copy())
 
     def show_image_effect(self, img):
 
@@ -407,24 +429,22 @@ class AppImageManipulation:
 
         self.resize_altered_image(img)
 
-    # Redimensiona a imagem resultante
     def resize_altered_image(self, img):
-        largura_imagem = 600
-        altura_imagem = 350
+        image_width = 600
+        image_height = 350
 
-        imagem_redimensionada = cv2.resize(img, (largura_imagem, altura_imagem))
+        resized_image = cv2.resize(img, (image_width, image_height))
 
-        self.altered_image = imagem_redimensionada
+        self.altered_image = cv2.cvtColor(resized_image.copy(), cv2.COLOR_BGR2RGB)
 
-        imagem_pil = Image.fromarray(imagem_redimensionada)
-        imagem_tk = ImageTk.PhotoImage(image=imagem_pil)
+        pil_image = Image.fromarray(resized_image)
+        tk_image = ImageTk.PhotoImage(image=pil_image)
 
-        self.label_altered_image = tk.Label(self.frame_image, image=imagem_tk)
-        self.label_altered_image.image = imagem_tk
+        self.label_altered_image = tk.Label(self.frame_image, image=tk_image)
+        self.label_altered_image.image = tk_image
         self.label_altered_image.pack(expand=True, fill="both", side="left")
 
         self.frame_image.update_idletasks()
-
 
     def show_original_image(self, img):
 
@@ -432,20 +452,20 @@ class AppImageManipulation:
             self.label_original_image.destroy()
             self.label_altered_image.destroy()
 
-        largura_imagem = 600
-        altura_imagem = 350
-        imagem_redimensionada = cv2.resize(img, (largura_imagem, altura_imagem))
+        image_width = 600
+        image_height = 350
+        resized_image = cv2.resize(img, (image_width, image_height))
 
-        imagem_pil = Image.fromarray(imagem_redimensionada)
-        imagem_tk = ImageTk.PhotoImage(image=imagem_pil)
+        pil_image = Image.fromarray(resized_image)
+        tk_image = ImageTk.PhotoImage(image=pil_image)
 
-        self.label_original_image = tk.Label(self.frame_image, image=imagem_tk)
-        self.label_original_image.image = imagem_tk
+        self.label_original_image = tk.Label(self.frame_image, image=tk_image)
+        self.label_original_image.image = tk_image
         self.label_original_image.pack(expand=True, fill="both", side="left")
 
         self.frame_image.update_idletasks()
 
-    def abrir_arquivo(self):
+    def open_file(self):
         self.image_path = filedialog.askopenfilename()
 
         if self.image_path:
@@ -458,7 +478,6 @@ class AppImageManipulation:
         self.master.mainloop()
 
 
-# Inicializar a aplicação
 if __name__ == "__main__":
     root = tk.Tk()
     app = AppImageManipulation(root)
