@@ -32,28 +32,34 @@ class Filter:
         self.sigma_atual = valor
         self.aplicar_filtro_gaussian()
 
-    def run_filter(self):
+    def run_filter(self, img=None):
         cv2.namedWindow(self.named_filter, cv2.WINDOW_AUTOSIZE)
 
-        if self.type_filter == "median":
-            def on_trackbar_change(valor):
-                self.median_blur(valor)
+        if img is not None:
+            self.aplicar_filtro_median()
+            cv2.destroyWindow(self.named_filter)
+            return self.imagem_alterada
 
-            cv2.createTrackbar("Kernel Size", self.named_filter, self.kernel_size_atual, 50, on_trackbar_change)
+        else:
+            if self.type_filter == "median":
+                def on_trackbar_change(valor):
+                    self.median_blur(valor)
 
-        if self.type_filter == "gaussian":
-            def on_trackbar_change(valor):
-                self.gaussian_blur(valor)
+                cv2.createTrackbar("Kernel Size", self.named_filter, self.kernel_size_atual, 50, on_trackbar_change)
 
-            cv2.createTrackbar("Sigma", self.named_filter, self.sigma_atual, 10, on_trackbar_change)
+            if self.type_filter == "gaussian":
+                def on_trackbar_change(valor):
+                    self.gaussian_blur(valor)
 
-        while True:
-            cv2.imshow(self.named_filter, self.imagem_alterada)
-            tecla = cv2.waitKey(1) & 0xFF
-            if tecla == 27:  # Tecla 'Esc' para sair
-                break
-            if tecla == ord('s'):
-                cv2.destroyWindow(self.named_filter)
-                return self.imagem_alterada
+                cv2.createTrackbar("Sigma", self.named_filter, self.sigma_atual, 10, on_trackbar_change)
+
+            while True:
+                cv2.imshow(self.named_filter, self.imagem_alterada)
+                tecla = cv2.waitKey(1) & 0xFF
+                if tecla == 27:  # Tecla 'Esc' para sair
+                    break
+                if tecla == ord('s'):
+                    cv2.destroyWindow(self.named_filter)
+                    return self.imagem_alterada
 
         cv2.destroyAllWindows()
