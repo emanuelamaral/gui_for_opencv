@@ -8,6 +8,7 @@ from src.effects.threshold import Threshold
 from src.effects.morphology import Morphology
 from src.effects.conversion import Conversion
 import os
+from matplotlib import pyplot as plt
 
 
 class AppImageManipulation:
@@ -45,6 +46,8 @@ class AppImageManipulation:
         self.load_image_button = None
         self.remove_effect_button = None
         self.save_image_button = None
+        self.generate_histogram_button = None
+        self.save_histogram_button = None
 
         self.count_save_files = 0
         # ###########################################################
@@ -73,6 +76,12 @@ class AppImageManipulation:
 
         self.save_image_button = tk.Button(self.frame_buttons, text="Salvar Imagem", command=self.save_image)
         self.save_image_button.pack(side="left", padx=10)
+
+        self.generate_histogram_button = tk.Button(self.frame_buttons, text="Gerar Histograma", command=self.generate_histogram)
+        self.generate_histogram_button.pack(side="left", padx=10)
+
+        self.save_histogram_button = tk.Button(self.frame_buttons, text="Salvar Histograma", command=self.save_histogram)
+        self.save_histogram_button.pack(side="left", padx=10)
 
     def list_views_config(self):
         self.list_view_effects = ttk.Treeview(self.master)
@@ -336,6 +345,37 @@ class AppImageManipulation:
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("border",))
         elif tag == "threshold":
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("threshold",))
+
+    def save_histogram(self):
+        pass
+
+    def generate_histogram(self):
+        plt.figure(figsize=(15, 6))
+
+        plt.subplot(131)
+        canal_b = self.altered_image[:, :, 0]
+        plt.hist(canal_b.ravel(), 256, [0, 256], color='blue')
+        plt.xlabel('Valor do Pixel')
+        plt.ylabel('Frequência')
+        plt.title("Histograma do Canal B da Imagem")
+
+        plt.subplot(132)
+        canal_g = self.altered_image[:, :, 1]
+        plt.hist(canal_g.ravel(), 256, [0, 256], color='green')
+        plt.xlabel('Valor do Pixel')
+        plt.ylabel('Frequência')
+        plt.title("Histograma do Canal G da Imagem")
+
+        plt.subplot(133)
+        canal_r = self.altered_image[:, :, 2]
+        plt.hist(canal_r.ravel(), 256, [0, 256], color='red')
+        plt.xlabel('Valor do Pixel')
+        plt.ylabel('Frequência')
+        plt.title("Histograma do Canal R da Imagem")
+
+        plt.tight_layout()
+
+        plt.show()
 
     def clear_applied_effects(self):
         # Limpa todos os itens no Bottom List View
