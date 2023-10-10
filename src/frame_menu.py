@@ -121,6 +121,7 @@ class AppImageManipulation:
         self.list_view_effects.insert("", "end", text="Detector de borda Laplace", tags=("laplace_border_detector", ))
 
         # Atribuição de funções para as opções do ListView de detecção de bordas
+        self.list_view_effects.tag_bind("canny_border_detector", "<ButtonRelease-1>", lambda event: self.canny_border_detector())
         self.list_view_effects.tag_bind("laplace_border_detector", "<ButtonRelease-1>", lambda event: self.laplace_border_detector())
 
         # ListView para threshold
