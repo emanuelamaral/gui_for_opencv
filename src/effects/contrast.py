@@ -7,11 +7,13 @@ class Contrast:
         self.imagem_alterada = np.copy(img)
         self.imagem_original = np.copy(img)
         self.named_filter = named_filter
+        self.final_value = 0
 
         self.contrast_value = 100  # Valor inicial
 
     def apply_contrast(self):
         self.imagem_alterada = cv2.convertScaleAbs(self.imagem_original, alpha=self.contrast_value / 100.0, beta=0)
+        self.final_value = 0
         cv2.imshow(self.named_filter, self.imagem_alterada)
 
     def contrast_callback(self, value):
@@ -33,6 +35,6 @@ class Contrast:
                 break
             if tecla == ord('s'):
                 cv2.destroyWindow(self.named_filter)
-                return self.imagem_alterada.copy()
+                return self.imagem_alterada.copy(), self.final_value
 
         cv2.destroyAllWindows()

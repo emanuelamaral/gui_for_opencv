@@ -10,14 +10,18 @@ class Morphology:
         self.type_morphology = type_morphology
         self.value_erosion = 0
         self.value_dilation = 0
+        self.final_value = 0
 
     def apply_erosion(self, value):
         kernel = np.ones((value, value), np.uint8)
         self.altered_img = cv2.erode(self.original_img, kernel, iterations=1)
+        self.final_value = value
         cv2.imshow(self.named_morphology, self.altered_img)
+
 
     def apply_dilatation(self, value):
         kernel = np.ones((value, value), np.uint8)
+        self.final_value = value
         self.altered_img = cv2.dilate(self.original_img, kernel, iterations=1)
         cv2.imshow(self.named_morphology, self.altered_img)
 
@@ -43,6 +47,6 @@ class Morphology:
                 break
             if tecla == ord('s'):
                 cv2.destroyWindow(self.named_morphology)
-                return self.altered_img
+                return self.altered_img, self.final_value
 
         cv2.destroyAllWindows()

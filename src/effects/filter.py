@@ -8,7 +8,7 @@ class Filter:
         self.imagem_original = np.copy(img)
         self.named_filter = named_filter
         self.type_filter = type_filter
-
+        self.final_value = 0
         self.kernel_size_atual = 1
         self.sigma_atual = 0
         self.diameter = 0
@@ -16,18 +16,19 @@ class Filter:
     def aplicar_filtro_median(self):
         imagem_median = cv2.medianBlur(self.imagem_original, self.kernel_size_atual)
         self.imagem_alterada = imagem_median
-
+        self.final_value = self.kernel_size_atual
         cv2.imshow(self.named_filter, self.imagem_alterada)
 
     def aplicar_filtro_gaussian(self):
         imagem_gaussian = cv2.GaussianBlur(self.imagem_original, (5, 5), self.sigma_atual)
         self.imagem_alterada = imagem_gaussian
-
+        self.final_value = self.sigma_atual
         cv2.imshow(self.named_filter, self.imagem_alterada)
 
     def aplicar_filtro_bilateral(self):
         imagem_bilateral = cv2.bilateralFilter(self.imagem_original, self.diameter, self.diameter * 2, self.diameter / 2)
         self.imagem_alterada = imagem_bilateral
+        self.final_value = self.diameter
         cv2.imshow(self.named_filter, self.imagem_alterada)
 
     def median_blur(self, valor):
@@ -76,6 +77,6 @@ class Filter:
                     break
                 if tecla == ord('s'):
                     cv2.destroyWindow(self.named_filter)
-                    return self.imagem_alterada
+                    return self.imagem_alterada, self.final_value
 
         cv2.destroyAllWindows()

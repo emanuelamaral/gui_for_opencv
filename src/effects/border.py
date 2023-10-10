@@ -8,6 +8,7 @@ class Border:
         self.original_image = np.copy(img)
         self.named_border = named_border
         self.type_border = type_border
+        self.final_value = 0
 
         self.upper_threshold_canny = 50
         self.bottom_threshold_canny = 150
@@ -23,7 +24,7 @@ class Border:
     def update_canny_border(self):
         edges = cv2.Canny(self.original_image, self.bottom_threshold_canny, self.upper_threshold_canny, apertureSize=3, L2gradient=False)
         self.altered_image = edges
-
+        self.final_value = f"{self.bottom_threshold_canny}, {self.upper_threshold_canny}"
         cv2.imshow(self.named_border, self.altered_image)
 
     def laplace_border(self, laplace_threshold):
@@ -32,6 +33,8 @@ class Border:
         # Aplica um limite (threshold) ao resultado do operador Laplace
         self.altered_image = cv2.convertScaleAbs(laplacian_edges)
         _, self.altered_image = cv2.threshold(self.altered_image, laplace_threshold, 255, cv2.THRESH_BINARY)
+        self.final_value = laplace_threshold
+
         cv2.imshow(self.named_border, self.altered_image)
 
     def run_border(self):
@@ -60,7 +63,7 @@ class Border:
                 break
             if tecla == ord('s'):
                 cv2.destroyWindow(self.named_border)
-                return self.altered_image
+                return self.altered_image, self.final_value
 
         cv2.destroyAllWindows()
 

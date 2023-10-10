@@ -151,7 +151,7 @@ class AppImageManipulation:
         self.list_view_applied_effects.pack(side="bottom", fill="x")
 
     def morph_closure(self):
-        if not self.morphology_effect_applied and self.image_path:
+        if self.image_path:
             effect_name = "Fechamento"
 
             self.morph_dilatation()
@@ -164,13 +164,13 @@ class AppImageManipulation:
                     self.list_view_applied_effects.delete(item)
 
             self.add_effect_to_list_view_applied_effects(effect_name, "morph")
-        elif self.morphology_effect_applied:
-            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        #elif self.morphology_effect_applied:
+        #    messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_opening(self):
-        if not self.morphology_effect_applied and self.image_path:
+        if self.image_path:
             effect_name = "Abertura"
 
             self.morph_erosion()
@@ -183,158 +183,158 @@ class AppImageManipulation:
                     self.list_view_applied_effects.delete(item)
 
             self.add_effect_to_list_view_applied_effects(effect_name, "morph")
-        elif self.morphology_effect_applied:
-            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        #elif self.morphology_effect_applied:
+        #    messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_dilatation(self):
-        if not self.morphology_effect_applied and self.image_path:
+        if self.image_path:
             morphology = Morphology(self.altered_image, "Dilatacao", "dilatation")
-            dilatation_image = morphology.run_morphology()
+            dilatation_image, final_value = morphology.run_morphology()
             if dilatation_image is not None:
-                effect_name = "Dilatação"
+                effect_name = f"Dilatação com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "morph")
                 self.morphology_effect_applied = True
                 self.show_image_effect(dilatation_image)
                 self.applied_effects.append(("morph", morphology))
-        elif self.morphology_effect_applied:
-            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        #elif self.morphology_effect_applied:
+        #    messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_erosion(self):
-        if not self.morphology_effect_applied and self.image_path:
+        if self.image_path:
             morphology = Morphology(self.altered_image, "Erosao", "erosion")
-            erosion_image = morphology.run_morphology()
+            erosion_image, final_value = morphology.run_morphology()
             if erosion_image is not None:
-                effect_name = "Erosão"
+                effect_name = f"Erosão com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "morph")
                 self.morphology_effect_applied = True
                 self.show_image_effect(erosion_image)
                 self.applied_effects.append(("morph", morphology))
-        elif self.morphology_effect_applied:
-            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        # elif self.morphology_effect_applied:
+        #    messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def threshold_gray(self):
-        if not self.threshold_effect_applied and self.image_path:
+        if self.image_path:
             threshold_gray = Threshold(self.altered_image, "Threshold GRAY", "binarize_gray")
-            binarized_image = threshold_gray.run_threshold()
+            binarized_image, final_value = threshold_gray.run_threshold()
             if binarized_image is not None:
-                effect_name = "Threshold Gray"
+                effect_name = f"Threshold Gray com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "threshold")
                 self.threshold_effect_applied = True
                 self.show_image_effect(binarized_image)
                 self.applied_effects.append(("threshold", threshold_gray))
-        elif self.threshold_effect_applied:
-            messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
+        # elif self.threshold_effect_applied:
+        #   messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def threshold_rgb(self):
-        if not self.threshold_effect_applied and self.image_path:
+        if self.image_path:
             threshold_rgb = Threshold(self.altered_image, "Threshold RGB", "binarize_rgb")
-            binarized_image = threshold_rgb.run_threshold()
+            binarized_image, final_value = threshold_rgb.run_threshold()
             if binarized_image is not None:
-                effect_name = "Threshold"
+                effect_name = f"Threshold com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "threshold")
                 self.threshold_effect_applied = True
                 self.show_image_effect(binarized_image)
                 self.applied_effects.append(("threshold", threshold_rgb))
-        elif self.threshold_effect_applied:
-            messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
+        #elif self.threshold_effect_applied:
+        #    messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def laplace_border_detector(self):
-        if not self.border_effect_applied and self.image_path:
+        if self.image_path:
             laplace_border = Border(self.altered_image, "Laplace Border", "laplace")
-            image_laplace = laplace_border.run_border()
+            image_laplace, final_value = laplace_border.run_border()
             if image_laplace is not None:
-                effect_name = "Detector de borda Laplace"
+                effect_name = f"Detector de borda Laplace com falor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "border")
                 self.border_effect_applied = True
                 self.show_image_effect(image_laplace)
                 self.applied_effects.append(("border", image_laplace))
-        elif self.border_effect_applied:
-            messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
+        #elif self.border_effect_applied:
+        #    messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def canny_border_detector(self):
-        if not self.border_effect_applied and self.image_path:
+        if self.image_path:
             canny_border = Border(self.altered_image, "Canny Border", "canny")
-            image_canny = canny_border.run_border()
+            image_canny, final_value = canny_border.run_border()
             if image_canny is not None:
-                effect_name = "Detector de borda Canny"
+                effect_name = f"Detector de borda Canny com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "border")
                 self.border_effect_applied = True
                 self.show_image_effect(image_canny)
                 self.applied_effects.append(("border", canny_border))
-        elif self.border_effect_applied:
-            messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
+        #elif self.border_effect_applied:
+        #    messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_bilateral_filter(self):
-        if not self.filter_effect_applied and self.image_path:
+        if self.image_path:
             bilateral_filter = Filter(self.altered_image, "Filtro Bilateral", "bilateral")
-            imagem_bilateral = bilateral_filter.run_filter()
+            imagem_bilateral, final_value = bilateral_filter.run_filter()
             if imagem_bilateral is not None:
-                effect_name = "Filtro Bilateral Blur"
+                effect_name = f"Filtro Bilateral Blur com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "filter")
                 self.filter_effect_applied = True
                 self.show_image_effect(imagem_bilateral)
                 self.applied_effects.append(("filter", imagem_bilateral))
-        elif self.filter_effect_applied:
-            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
+        #elif self.filter_effect_applied:
+        #    messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_gaussian_filter(self):
-        if not self.filter_effect_applied and self.image_path:
+        if self.image_path:
             gaussian_filter = Filter(self.altered_image, "Filter Gaussian", "gaussian")
-            imagem_gaussian = gaussian_filter.run_filter()
+            imagem_gaussian, final_value = gaussian_filter.run_filter()
             if imagem_gaussian is not None:
-                effect_name = "Filtro Gaussian Blur"
+                effect_name = f"Filtro Gaussian Blur  com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "filter")
                 self.filter_effect_applied = True
                 self.show_image_effect(imagem_gaussian)
                 self.applied_effects.append(("filter", gaussian_filter))
-        elif self.filter_effect_applied:
-            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
+        #elif self.filter_effect_applied:
+        #    messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_median_filter(self):
-        if not self.filter_effect_applied and self.image_path:
+        if self.image_path:
             median_filter = Filter(self.altered_image, "Filter Median", "median")
-            imagem_median = median_filter.run_filter()
+            imagem_median, final_value = median_filter.run_filter()
             if imagem_median is not None:
-                effect_name = "Filtro Median Blur"
+                effect_name = f"Filtro Median Blur  com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "filter")
                 self.filter_effect_applied = True
                 self.show_image_effect(imagem_median)
                 self.applied_effects.append(("filter", median_filter))
-        elif self.filter_effect_applied:
-            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
+        #elif self.filter_effect_applied:
+        #    messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def apply_contrast(self):
-        if not self.filter_effect_applied and self.image_path:
+        if self.image_path:
             contrast = Contrast(self.altered_image, "Contraste")
-            imagem_contrast = contrast.run_contrast()
+            imagem_contrast, final_value = contrast.run_contrast()
             if imagem_contrast is not None:
-                effect_name = "Contraste"
+                effect_name = f"Contraste com valor {final_value}"
                 self.add_effect_to_list_view_applied_effects(effect_name, "contrast")
                 self.contrast_effect_applied = True
                 self.show_image_effect(imagem_contrast)
                 self.applied_effects.append(("contrast", contrast))
-        elif self.filter_effect_applied:
-            messagebox.showinfo("Aviso", "O contraste já foi aplicado.")
+        #elif self.filter_effect_applied:
+        #    messagebox.showinfo("Aviso", "O contraste já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
