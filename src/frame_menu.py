@@ -558,6 +558,7 @@ class AppImageManipulation:
 
         # Convert OpenCV BGR image to RGB
         resized_image_rgb = cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB)
+        self.altered_image = resized_image
 
         pil_image = Image.fromarray(resized_image_rgb)
         tk_image = ImageTk.PhotoImage(image=pil_image)
