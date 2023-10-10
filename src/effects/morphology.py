@@ -22,7 +22,7 @@ class Morphology:
         cv2.imshow(self.named_morphology, self.altered_img)
 
     def run_morphology(self):
-        cv2.namedWindow(self.named_morphology, cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow(self.named_morphology, cv2.WINDOW_NORMAL)
 
         if self.type_morphology == "erosion":
             def on_trackbar_change(value):

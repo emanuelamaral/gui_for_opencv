@@ -26,8 +26,8 @@ class Border:
 
         cv2.imshow(self.named_border, self.altered_image)
 
-    def run_filter(self):
-        cv2.namedWindow(self.named_border, cv2.WINDOW_AUTOSIZE)
+    def run_border(self):
+        cv2.namedWindow(self.named_border, cv2.WINDOW_NORMAL)
 
         if self.type_border == "canny":
             def on_upper_threshold_change(valor):

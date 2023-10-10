@@ -19,6 +19,8 @@ class AppImageManipulation:
         self.master = master
         self.image_path = None
 
+        self.first_run = True
+
         self.original_image = None
         self.label_altered_image = None
         self.label_original_image = None
@@ -30,12 +32,7 @@ class AppImageManipulation:
         self.border_effect_applied = False
         self.threshold_effect_applied = False
         self.morphology_effect_applied = False
-        self.conversion_effect = None
-        self.filter_effect = None
-        self.border_effect = None
-        self.morph_effect = None
-        self.threshold_effect = None
-
+        self.contrast_effect_applied = False
         self.applied_effects = []
 
         self.list_view_effects = None
@@ -242,7 +239,7 @@ class AppImageManipulation:
     def canny_border_detector(self):
         if not self.border_effect_applied and self.image_path:
             canny_border = Border(self.altered_image, "Canny Border", "canny")
-            image_canny = canny_border.run_filter()
+            image_canny = canny_border.run_border()
             if image_canny is not None:
                 effect_name = "Detector de borda Canny"
                 self.add_effect_to_list_view_applied_effects(effect_name, "border")
@@ -302,12 +299,12 @@ class AppImageManipulation:
     def apply_contrast(self):
         if not self.filter_effect_applied and self.image_path:
             contrast = Contrast(self.altered_image, "Contraste")
-            imagem_median = contrast.run_filter()
-            if imagem_median is not None:
+            imagem_contrast = contrast.run_contrast()
+            if imagem_contrast is not None:
                 effect_name = "Contraste"
                 self.add_effect_to_list_view_applied_effects(effect_name, "contrast")
-                self.filter_effect_applied = True
-                self.show_image_effect(imagem_median)
+                self.contrast_effect_applied = True
+                self.show_image_effect(imagem_contrast)
                 self.applied_effects.append(("contrast", contrast))
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O contraste já foi aplicado.")
@@ -321,7 +318,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -336,7 +332,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -351,7 +346,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -366,7 +360,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -381,7 +374,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -396,7 +388,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -411,7 +402,6 @@ class AppImageManipulation:
             converted_img = conversion.run_conversion()
             self.add_effect_to_list_view_applied_effects(effect_name, "conversion")
             self.conversion_effect_applied = True
-            self.conversion_effect = converted_img.copy()
             self.show_image_effect(converted_img)
             self.applied_effects.append(("conversion", converted_img))
         elif self.conversion_effect_applied:
@@ -470,6 +460,7 @@ class AppImageManipulation:
         self.border_effect_applied = False
         self.conversion_effect_applied = False
         self.filter_effect_applied = False
+        self.contrast_effect_applied = False
 
     def remover_filtro(self, tag_item):
         # Remove o filtro que foi selecionado
@@ -487,7 +478,7 @@ class AppImageManipulation:
             elif effect_type == "filter":
                 imagem_sem_filtro = effect.run_filter(imagem_sem_filtro)
             elif effect_type == "border":
-                imagem_sem_filtro = effect.run_filter(imagem_sem_filtro)
+                imagem_sem_filtro = effect.run_border(imagem_sem_filtro)
             elif effect_type == "threshold":
                 imagem_sem_filtro = effect.run_threshold(imagem_sem_filtro)
 
@@ -511,6 +502,8 @@ class AppImageManipulation:
                 self.border_effect_applied = False
             elif tag_item == "threshold":
                 self.threshold_effect_applied = False
+            elif tag_item == "contrast":
+                self.contrast_effect_applied = False
 
     def select_filter_to_remove(self):
         selected_item = self.list_view_applied_effects.selection()
@@ -542,7 +535,7 @@ class AppImageManipulation:
 
     def load_image(self):
         self.original_image = cv2.imread(self.image_path)
-        self.original_image = cv2.cvtColor(self.original_image.copy(), cv2.COLOR_BGR2RGB)
+       # self.original_image = cv2.cvtColor(self.original_image.copy(), cv2.COLOR_RGB2BGR)
         self.altered_image = self.original_image.copy()
 
         self.clear_applied_effects()
@@ -563,9 +556,10 @@ class AppImageManipulation:
 
         resized_image = cv2.resize(img, (image_width, image_height))
 
-        self.altered_image = cv2.cvtColor(resized_image.copy(), cv2.COLOR_BGR2RGB)
+        # Convert OpenCV BGR image to RGB
+        resized_image_rgb = cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB)
 
-        pil_image = Image.fromarray(resized_image)
+        pil_image = Image.fromarray(resized_image_rgb)
         tk_image = ImageTk.PhotoImage(image=pil_image)
 
         self.label_altered_image = tk.Label(self.frame_image, image=tk_image)
@@ -575,7 +569,6 @@ class AppImageManipulation:
         self.frame_image.update_idletasks()
 
     def show_original_image(self, img):
-
         if self.label_original_image and self.label_altered_image:
             self.label_original_image.destroy()
             self.label_altered_image.destroy()
@@ -584,7 +577,10 @@ class AppImageManipulation:
         image_height = 350
         resized_image = cv2.resize(img, (image_width, image_height))
 
-        pil_image = Image.fromarray(resized_image)
+        # Convert OpenCV BGR image to RGB
+        resized_image_rgb = cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB)
+
+        pil_image = Image.fromarray(resized_image_rgb)
         tk_image = ImageTk.PhotoImage(image=pil_image)
 
         self.label_original_image = tk.Label(self.frame_image, image=tk_image)
@@ -603,6 +599,7 @@ class AppImageManipulation:
             print('Nenhum arquivo selecionado')
 
     def run(self):
+        cv2.destroyAllWindows()
         self.master.mainloop()
 
 

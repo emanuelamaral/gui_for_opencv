@@ -25,7 +25,7 @@ class Threshold:
         cv2.imshow(self.named_threshold, self.altered_img)
 
     def run_threshold(self):
-        cv2.namedWindow(self.named_threshold, cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow(self.named_threshold, cv2.WINDOW_NORMAL)
 
         if self.type_threshold == 'binarize_rgb':
             def on_trackbar_change(value):

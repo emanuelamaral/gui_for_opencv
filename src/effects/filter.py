@@ -43,7 +43,7 @@ class Filter:
         self.aplicar_filtro_bilateral()
 
     def run_filter(self, img=None):
-        cv2.namedWindow(self.named_filter, cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow(self.named_filter, cv2.WINDOW_NORMAL)
 
         if img is not None:
             self.aplicar_filtro_median()

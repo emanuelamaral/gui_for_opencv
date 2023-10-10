@@ -18,8 +18,8 @@ class Contrast:
         self.contrast_value = value
         self.apply_contrast()
 
-    def run_filter(self, img=None):
-        cv2.namedWindow(self.named_filter, cv2.WINDOW_AUTOSIZE)
+    def run_contrast(self, img=None):
+        cv2.namedWindow(self.named_filter, cv2.WINDOW_NORMAL)
 
         def on_trackbar_change(value):
             self.contrast_callback(value)
@@ -33,6 +33,6 @@ class Contrast:
                 break
             if tecla == ord('s'):
                 cv2.destroyWindow(self.named_filter)
-                return self.imagem_alterada
+                return self.imagem_alterada.copy()
 
         cv2.destroyAllWindows()
