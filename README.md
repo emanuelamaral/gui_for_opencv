@@ -29,9 +29,11 @@ No Arch Linux:
 sudo pacman -Sy python
 `
 
+
 ### PyCharm (ou qualquer outra IDE de sua escolha)
 
-Você pode baixar o PyCharm diretamente do site oficial da JetBrains (https://www.jetbrains.com/pycharm/download/) ou, se preferir, pode usar o gerenciador de pacotes da sua distribuição para instalar a versão Community:
+Você pode baixar o PyCharm diretamente do site oficial da JetBrains (https://www.jetbrains.com/pycharm/download/) ou, se preferir, pode usar o gerenciador de pacotes da sua distribuição para instalar a versão Community:![Screenshot_20231010_142931](https://github.com/emanuelamaral/gui_for_opencv/assets/105809178/62ad35dd-23f0-4039-a1e5-e6a8e7f07428)
+
 
 #### Ubuntu/Debian:
 
@@ -81,14 +83,16 @@ pip install opencv-python matplotlib pillow numpy
 3. Para aplicar os filtros (exceto conversões), pressione a tecla "S".
 4. Use os botões "Apagar", "Salvar Imagem" e "Gerar Histograma" para executar as respectivas ações.
 
-## Funcionalidades
-
 ### Botões
 
 - **Carregar Imagem:** Permite selecionar uma imagem para ser carregada na aplicação.
 - **Apagar:** Limpa as imagens exibidas.
 - **Salvar Imagem:** Salva a imagem modificada em um arquivo.
 - **Gerar Histograma:** Gera e exibe o histograma da imagem modificada.
+
+### Imagens
+![Screenshot_20231010_142931](https://github.com/emanuelamaral/gui_for_opencv/assets/105809178/c1e7c592-9c28-4c3e-a7ee-af4b6aef0ec3)
+![Screenshot_20231010_143304](https://github.com/emanuelamaral/gui_for_opencv/assets/105809178/fd93e9bb-b5fe-4f79-9c77-2f6cfaa7cffa)
 
 ### Atalhos
 
