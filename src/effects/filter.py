@@ -11,6 +11,7 @@ class Filter:
 
         self.kernel_size_atual = 1
         self.sigma_atual = 0
+        self.diameter = 0
 
     def aplicar_filtro_median(self):
         imagem_median = cv2.medianBlur(self.imagem_original, self.kernel_size_atual)
@@ -24,6 +25,11 @@ class Filter:
 
         cv2.imshow(self.named_filter, self.imagem_alterada)
 
+    def aplicar_filtro_bilateral(self):
+        imagem_bilateral = cv2.bilateralFilter(self.imagem_original, self.diameter, self.diameter * 2, self.diameter / 2)
+        self.imagem_alterada = imagem_bilateral
+        cv2.imshow(self.named_filter, self.imagem_alterada)
+
     def median_blur(self, valor):
         self.kernel_size_atual = valor if valor % 2 == 1 else valor + 1
         self.aplicar_filtro_median()
@@ -31,6 +37,10 @@ class Filter:
     def gaussian_blur(self, valor):
         self.sigma_atual = valor
         self.aplicar_filtro_gaussian()
+
+    def bilateral_filter(self, valor):
+        self.diameter = valor
+        self.aplicar_filtro_bilateral()
 
     def run_filter(self, img=None):
         cv2.namedWindow(self.named_filter, cv2.WINDOW_AUTOSIZE)
@@ -51,7 +61,13 @@ class Filter:
                 def on_trackbar_change(valor):
                     self.gaussian_blur(valor)
 
-                cv2.createTrackbar("Sigma", self.named_filter, self.sigma_atual, 10, on_trackbar_change)
+                cv2.createTrackbar("Sigma", self.named_filter, self.sigma_atual, 50, on_trackbar_change)
+
+            if self.type_filter == "bilateral":
+                def on_trackbar_bilateral(diameter):
+                    self.bilateral_filter(diameter)
+
+                cv2.createTrackbar("Diameter", self.named_filter, self.diameter, 50, on_trackbar_bilateral)
 
             while True:
                 cv2.imshow(self.named_filter, self.imagem_alterada)

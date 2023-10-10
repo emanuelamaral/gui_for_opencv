@@ -7,6 +7,7 @@ from src.effects.border import Border
 from src.effects.threshold import Threshold
 from src.effects.morphology import Morphology
 from src.effects.conversion import Conversion
+from src.effects.contrast import Contrast
 import os
 from matplotlib import pyplot as plt
 
@@ -61,11 +62,9 @@ class AppImageManipulation:
         self.master.title("Manipulação de Imagem")
         self.master.geometry("1440x720")
 
-        # Criar um frame para a imagem no meio
         self.frame_image = tk.Frame(self.master)
         self.frame_image.pack(expand=True, fill="both")
 
-        # Criar um frame para os botões
         self.frame_buttons = tk.Frame(self.master)
         self.frame_buttons.pack(side="top", pady=10)
 
@@ -104,13 +103,21 @@ class AppImageManipulation:
         self.list_view_effects.tag_bind("cvt_rgb_2_cielab", "<ButtonRelease-1>", lambda event: self.cvt_rgb_2_cielab())
         self.list_view_effects.tag_bind("cvt_rgb_2_cieluv", "<ButtonRelease-1>", lambda event: self.cvt_rgb_2_cieluv())
 
+        #ListView para Constraste
+        self.list_view_effects.insert("", "end", text="Contraste", tags=("contrast", ))
+
+        #Atribuição de funções para a opção de contraste
+        self.list_view_effects.tag_bind("contrast", "<ButtonRelease-1>", lambda event: self.apply_contrast())
+
         # ListView para Filtros
         self.list_view_effects.insert("", "end", text="Filtro Median Blur", tags=("blur_median_filter", ))
         self.list_view_effects.insert("", "end", text="Filtro Gaussian Blur", tags=("blur_gaussian_filter", ))
+        self.list_view_effects.insert("", "end", text="Filtro Bilateral Blur", tags=("blur_bilateral_filter", ))
 
         # Atribuição de funções para as opções do ListView filtros.
         self.list_view_effects.tag_bind("blur_median_filter", "<ButtonRelease-1>", lambda event: self.blur_median_filter())
         self.list_view_effects.tag_bind("blur_gaussian_filter", "<ButtonRelease-1>", lambda event: self.blur_gaussian_filter())
+        self.list_view_effects.tag_bind("blur_bilateral_filter", "<ButtonRelease-1>", lambda event: self.blur_bilateral_filter())
 
         # ListView para detector de bordas
         self.list_view_effects.insert("", "end", text="Detector de borda Canny", tags=("canny_border_detector", ))
@@ -247,6 +254,21 @@ class AppImageManipulation:
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
+    def blur_bilateral_filter(self):
+        if not self.filter_effect_applied and self.image_path:
+            bilateral_filter = Filter(self.altered_image, "Filtro Bilateral", "bilateral")
+            imagem_bilateral = bilateral_filter.run_filter()
+            if imagem_bilateral is not None:
+                effect_name = "Filtro Bilateral Blur"
+                self.add_effect_to_list_view_applied_effects(effect_name, "filter")
+                self.filter_effect_applied = True
+                self.show_image_effect(imagem_bilateral)
+                self.applied_effects.append(("filter", imagem_bilateral))
+        elif self.filter_effect_applied:
+            messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+
     def blur_gaussian_filter(self):
         if not self.filter_effect_applied and self.image_path:
             gaussian_filter = Filter(self.altered_image, "Filter Gaussian", "gaussian")
@@ -274,6 +296,21 @@ class AppImageManipulation:
                 self.applied_effects.append(("filter", median_filter))
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+
+    def apply_contrast(self):
+        if not self.filter_effect_applied and self.image_path:
+            contrast = Contrast(self.altered_image, "Contraste")
+            imagem_median = contrast.run_filter()
+            if imagem_median is not None:
+                effect_name = "Contraste"
+                self.add_effect_to_list_view_applied_effects(effect_name, "contrast")
+                self.filter_effect_applied = True
+                self.show_image_effect(imagem_median)
+                self.applied_effects.append(("contrast", contrast))
+        elif self.filter_effect_applied:
+            messagebox.showinfo("Aviso", "O contraste já foi aplicado.")
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
@@ -393,6 +430,8 @@ class AppImageManipulation:
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("border",))
         elif tag == "threshold":
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("threshold",))
+        elif tag == "contrast":
+            self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("contrast",))
 
     def generate_histogram(self):
         plt.figure(figsize=(15, 6))
