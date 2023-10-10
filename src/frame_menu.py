@@ -50,6 +50,8 @@ class AppImageManipulation:
         self.save_histogram_button = None
 
         self.count_save_files = 0
+
+        self.directory = "images/saved-images"
         # ###########################################################
 
         self.config_frame()
@@ -80,12 +82,9 @@ class AppImageManipulation:
         self.generate_histogram_button = tk.Button(self.frame_buttons, text="Gerar Histograma", command=self.generate_histogram)
         self.generate_histogram_button.pack(side="left", padx=10)
 
-        self.save_histogram_button = tk.Button(self.frame_buttons, text="Salvar Histograma", command=self.save_histogram)
-        self.save_histogram_button.pack(side="left", padx=10)
-
     def list_views_config(self):
         self.list_view_effects = ttk.Treeview(self.master)
-        self.list_view_effects.column("#0", width=250, minwidth=210)
+        self.list_view_effects.column("#0", width=350, minwidth=210)
 
         # ListView Para conversões de cores
         self.list_view_effects.insert("", "end", text="Converter de RGB --> GRAY", tags=("cvt_rgb_2_gray",))
@@ -121,23 +120,57 @@ class AppImageManipulation:
 
         # ListView para threshold
         self.list_view_effects.insert("", "end", text="Threshold RGB", tags=("threshold_rgb", ))
+        self.list_view_effects.insert("", "end", text="Threshold GRAY", tags=("threshold_gray", ))
 
         # Atribuição de funções para as opções de threshold
         self.list_view_effects.tag_bind("threshold_rgb", "<ButtonRelease-1>", lambda event: self.threshold_rgb())
+        self.list_view_effects.tag_bind("threshold_gray", "<ButtonRelease-1>", lambda event: self.threshold_gray())
 
         # ListView para Morfologias Matemáticas
         self.list_view_effects.insert("", "end", text="Erosão", tags=("morph_erosion", ))
-        self.list_view_effects.insert("", "end", text="Dilatação", tags=("morph_dilatation"))
+        self.list_view_effects.insert("", "end", text="Dilatação", tags=("morph_dilatation", ))
+        self.list_view_effects.insert("", "end", text="Abertura", tags=("morph_opening", ))
+        self.list_view_effects.insert("", "end", text="Fechamento", tags=("morph_closure", ))
 
         # Atribuição de funções para as opções de morfologia matemática
         self.list_view_effects.tag_bind("morph_erosion", "<ButtonRelease-1>", lambda evet: self.morph_erosion())
         self.list_view_effects.tag_bind("morph_dilatation", "<ButtonRelease-1>", lambda evet: self.morph_dilatation())
+        self.list_view_effects.tag_bind("morph_opening", "<ButtonRelease-1>", lambda evet: self.morph_opening())
+        self.list_view_effects.tag_bind("morph_closure", "<ButtonRelease-1>", lambda evet: self.morph_closure())
 
         self.list_view_effects.pack(side="left", fill="y")
 
         # Cria um ListView na parte de baixo do frame para mostrar os filtros aplicados
         self.list_view_applied_effects = ttk.Treeview(self.master)
         self.list_view_applied_effects.pack(side="bottom", fill="x")
+
+    def morph_closure(self):
+        effect_name = "Fechamento"
+
+        self.morph_dilatation()
+        self.morphology_effect_applied = False
+        self.morph_erosion()
+
+        for item in self.list_view_applied_effects.get_children():
+            item_tags = self.list_view_applied_effects.item(item)["tags"]
+            if 'morph' == item_tags[0]:
+                self.list_view_applied_effects.delete(item)
+
+        self.add_effect_to_list_view_applied_effects(effect_name, "morph")
+
+    def morph_opening(self):
+        effect_name = "Abertura"
+
+        self.morph_erosion()
+        self.morphology_effect_applied = False
+        self.morph_dilatation()
+
+        for item in self.list_view_applied_effects.get_children():
+            item_tags = self.list_view_applied_effects.item(item)["tags"]
+            if 'morph' == item_tags[0]:
+                self.list_view_applied_effects.delete(item)
+
+        self.add_effect_to_list_view_applied_effects(effect_name, "morph")
 
     def morph_dilatation(self):
         if not self.morphology_effect_applied and self.image_path:
@@ -169,9 +202,24 @@ class AppImageManipulation:
         else:
             messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
 
+    def threshold_gray(self):
+        if not self.threshold_effect_applied and self.image_path:
+            threshold_gray = Threshold(self.altered_image, "Threshold GRAY", "binarize_gray")
+            binarized_image = threshold_gray.run_threshold()
+            if binarized_image is not None:
+                effect_name = "Threshold Gray"
+                self.add_effect_to_list_view_applied_effects(effect_name, "threshold")
+                self.threshold_effect_applied = True
+                self.show_image_effect(binarized_image)
+                self.applied_effects.append(("threshold", threshold_gray))
+        elif self.threshold_effect_applied:
+            messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+
     def threshold_rgb(self):
         if not self.threshold_effect_applied and self.image_path:
-            threshold_rgb = Threshold(self.altered_image, "Threshold RGB", "binarize")
+            threshold_rgb = Threshold(self.altered_image, "Threshold RGB", "binarize_rgb")
             binarized_image = threshold_rgb.run_threshold()
             if binarized_image is not None:
                 effect_name = "Threshold"
@@ -346,9 +394,6 @@ class AppImageManipulation:
         elif tag == "threshold":
             self.list_view_applied_effects.insert("", "end", text=effect_name, tags=("threshold",))
 
-    def save_histogram(self):
-        pass
-
     def generate_histogram(self):
         plt.figure(figsize=(15, 6))
 
@@ -439,12 +484,16 @@ class AppImageManipulation:
             messagebox.showinfo("Aviso", "Selecione um efeito para apagar.")
 
     def save_image(self):
-        directory = "images/saved-images"
+
+        # Cria diretorio de não existe
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
+
         while True:
             filename = f'imagem_{self.count_save_files}.jpg'
-            file_path = os.path.join(directory, filename)
+            file_path = os.path.join(self.directory, filename)
 
-            # Incrementa se ja existir algum arquivo com o numero atual
+            # Incrementa se já existir algum arquivo com o número atual
             if os.path.exists(file_path):
                 self.count_save_files += 1
             else:

@@ -28,13 +28,13 @@ class Morphology:
             def on_trackbar_change(value):
                 self.apply_erosion(value)
 
-            cv2.createTrackbar('Element Size', self.named_morphology, self.value_erosion, 50, on_trackbar_change)
+            cv2.createTrackbar('Erosao', self.named_morphology, self.value_erosion, 50, on_trackbar_change)
 
         if self.type_morphology == "dilatation":
             def on_trackbar_change(value):
                 self.apply_dilatation(value)
 
-            cv2.createTrackbar('Element Size', self.named_morphology, self.value_dilation, 50, on_trackbar_change)
+            cv2.createTrackbar('Dilatacao', self.named_morphology, self.value_dilation, 50, on_trackbar_change)
 
         while True:
             cv2.imshow(self.named_morphology, self.altered_img)
