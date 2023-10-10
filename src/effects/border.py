@@ -26,6 +26,14 @@ class Border:
 
         cv2.imshow(self.named_border, self.altered_image)
 
+    def laplace_border(self, laplace_threshold):
+        # Aplica o operador Laplace para detectar as bordas
+        laplacian_edges = cv2.Laplacian(self.original_image, cv2.CV_64F)
+        # Aplica um limite (threshold) ao resultado do operador Laplace
+        self.altered_image = cv2.convertScaleAbs(laplacian_edges)
+        _, self.altered_image = cv2.threshold(self.altered_image, laplace_threshold, 255, cv2.THRESH_BINARY)
+        cv2.imshow(self.named_border, self.altered_image)
+
     def run_border(self):
         cv2.namedWindow(self.named_border, cv2.WINDOW_NORMAL)
 
@@ -39,6 +47,12 @@ class Border:
             cv2.createTrackbar("Limiar Superior Canny", self.named_border, self.upper_threshold_canny, 255, on_upper_threshold_change)
             cv2.createTrackbar("Limiar Inferior Canny", self.named_border, self.bottom_threshold_canny, 255, on_bottom_threshold_change)
 
+        elif self.type_border == "laplace":
+            def on_laplace_threshold_change(valor):
+                self.laplace_border(valor)
+
+            cv2.createTrackbar("Limiar Laplace", self.named_border, 0, 255, on_laplace_threshold_change)
+
         while True:
             cv2.imshow(self.named_border, self.altered_image)
             tecla = cv2.waitKey(1) & 0xFF
@@ -49,3 +63,4 @@ class Border:
                 return self.altered_image
 
         cv2.destroyAllWindows()
+

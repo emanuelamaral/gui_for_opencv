@@ -56,7 +56,7 @@ class AppImageManipulation:
         self.list_views_config()
 
     def config_frame(self):
-        self.master.title("Manipulação de Imagem")
+        self.master.title("OpenCV 2 - A vingança")
         self.master.geometry("1440x720")
 
         self.frame_image = tk.Frame(self.master)
@@ -118,9 +118,10 @@ class AppImageManipulation:
 
         # ListView para detector de bordas
         self.list_view_effects.insert("", "end", text="Detector de borda Canny", tags=("canny_border_detector", ))
+        self.list_view_effects.insert("", "end", text="Detector de borda Laplace", tags=("laplace_border_detector", ))
 
         # Atribuição de funções para as opções do ListView de detecção de bordas
-        self.list_view_effects.tag_bind("canny_border_detector", "<ButtonRelease-1>", lambda event: self.canny_border_detector())
+        self.list_view_effects.tag_bind("laplace_border_detector", "<ButtonRelease-1>", lambda event: self.laplace_border_detector())
 
         # ListView para threshold
         self.list_view_effects.insert("", "end", text="Threshold RGB", tags=("threshold_rgb", ))
@@ -149,32 +150,42 @@ class AppImageManipulation:
         self.list_view_applied_effects.pack(side="bottom", fill="x")
 
     def morph_closure(self):
-        effect_name = "Fechamento"
+        if not self.morphology_effect_applied and self.image_path:
+            effect_name = "Fechamento"
 
-        self.morph_dilatation()
-        self.morphology_effect_applied = False
-        self.morph_erosion()
+            self.morph_dilatation()
+            self.morphology_effect_applied = False
+            self.morph_erosion()
 
-        for item in self.list_view_applied_effects.get_children():
-            item_tags = self.list_view_applied_effects.item(item)["tags"]
-            if 'morph' == item_tags[0]:
-                self.list_view_applied_effects.delete(item)
+            for item in self.list_view_applied_effects.get_children():
+                item_tags = self.list_view_applied_effects.item(item)["tags"]
+                if 'morph' == item_tags[0]:
+                    self.list_view_applied_effects.delete(item)
 
-        self.add_effect_to_list_view_applied_effects(effect_name, "morph")
+            self.add_effect_to_list_view_applied_effects(effect_name, "morph")
+        elif self.morphology_effect_applied:
+            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_opening(self):
-        effect_name = "Abertura"
+        if not self.morphology_effect_applied and self.image_path:
+            effect_name = "Abertura"
 
-        self.morph_erosion()
-        self.morphology_effect_applied = False
-        self.morph_dilatation()
+            self.morph_erosion()
+            self.morphology_effect_applied = False
+            self.morph_dilatation()
 
-        for item in self.list_view_applied_effects.get_children():
-            item_tags = self.list_view_applied_effects.item(item)["tags"]
-            if 'morph' == item_tags[0]:
-                self.list_view_applied_effects.delete(item)
+            for item in self.list_view_applied_effects.get_children():
+                item_tags = self.list_view_applied_effects.item(item)["tags"]
+                if 'morph' == item_tags[0]:
+                    self.list_view_applied_effects.delete(item)
 
-        self.add_effect_to_list_view_applied_effects(effect_name, "morph")
+            self.add_effect_to_list_view_applied_effects(effect_name, "morph")
+        elif self.morphology_effect_applied:
+            messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_dilatation(self):
         if not self.morphology_effect_applied and self.image_path:
@@ -189,7 +200,7 @@ class AppImageManipulation:
         elif self.morphology_effect_applied:
             messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def morph_erosion(self):
         if not self.morphology_effect_applied and self.image_path:
@@ -204,7 +215,7 @@ class AppImageManipulation:
         elif self.morphology_effect_applied:
             messagebox.showinfo("Aviso", "A morfologia já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def threshold_gray(self):
         if not self.threshold_effect_applied and self.image_path:
@@ -219,7 +230,7 @@ class AppImageManipulation:
         elif self.threshold_effect_applied:
             messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def threshold_rgb(self):
         if not self.threshold_effect_applied and self.image_path:
@@ -234,7 +245,22 @@ class AppImageManipulation:
         elif self.threshold_effect_applied:
             messagebox.showinfo("Aviso", "O Threshold já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
+
+    def laplace_border_detector(self):
+        if not self.border_effect_applied and self.image_path:
+            laplace_border = Border(self.altered_image, "Laplace Border", "laplace")
+            image_laplace = laplace_border.run_border()
+            if image_laplace is not None:
+                effect_name = "Detector de borda Laplace"
+                self.add_effect_to_list_view_applied_effects(effect_name, "border")
+                self.border_effect_applied = True
+                self.show_image_effect(image_laplace)
+                self.applied_effects.append(("border", image_laplace))
+        elif self.border_effect_applied:
+            messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
+        else:
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def canny_border_detector(self):
         if not self.border_effect_applied and self.image_path:
@@ -249,7 +275,7 @@ class AppImageManipulation:
         elif self.border_effect_applied:
             messagebox.showinfo("Aviso", "O detector de bordas já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_bilateral_filter(self):
         if not self.filter_effect_applied and self.image_path:
@@ -264,7 +290,7 @@ class AppImageManipulation:
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_gaussian_filter(self):
         if not self.filter_effect_applied and self.image_path:
@@ -279,7 +305,7 @@ class AppImageManipulation:
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def blur_median_filter(self):
         if not self.filter_effect_applied and self.image_path:
@@ -294,7 +320,7 @@ class AppImageManipulation:
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O filtro já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def apply_contrast(self):
         if not self.filter_effect_applied and self.image_path:
@@ -309,7 +335,7 @@ class AppImageManipulation:
         elif self.filter_effect_applied:
             messagebox.showinfo("Aviso", "O contraste já foi aplicado.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_cieluv(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -323,7 +349,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_cielab(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -337,7 +363,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_hls(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -351,7 +377,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_hsv(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -365,7 +391,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_ycrcb(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -379,7 +405,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_xyz(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -393,7 +419,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def cvt_rgb_2_gray(self):
         if not self.conversion_effect_applied and self.image_path:
@@ -407,7 +433,7 @@ class AppImageManipulation:
         elif self.conversion_effect_applied:
             messagebox.showinfo("Aviso", "A conversão já foi aplicada.")
         else:
-            messagebox.showwarning("Aviso", "Carregue uma imagem antes de converter para escala de cinza.")
+            messagebox.showwarning("Aviso", "Carregue uma imagem antes para usar os efeitos.")
 
     def add_effect_to_list_view_applied_effects(self, effect_name, tag):
         if tag == "conversion":
@@ -481,6 +507,8 @@ class AppImageManipulation:
                 imagem_sem_filtro = effect.run_border(imagem_sem_filtro)
             elif effect_type == "threshold":
                 imagem_sem_filtro = effect.run_threshold(imagem_sem_filtro)
+            elif effect_type == "contrast":
+                imagem_sem_filtro = effect.run_contrast(imagem_sem_filtro)
 
         # Atualiza a imagem alterada no frame
         if self.label_altered_image:
@@ -535,7 +563,6 @@ class AppImageManipulation:
 
     def load_image(self):
         self.original_image = cv2.imread(self.image_path)
-       # self.original_image = cv2.cvtColor(self.original_image.copy(), cv2.COLOR_RGB2BGR)
         self.altered_image = self.original_image.copy()
 
         self.clear_applied_effects()
